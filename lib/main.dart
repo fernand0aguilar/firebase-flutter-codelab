@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 class Record {
-  final String name;
+  final String name;  
   final int votes;
   final DocumentReference reference;
 
