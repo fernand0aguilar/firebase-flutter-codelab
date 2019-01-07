@@ -1,4 +1,4 @@
-import 'package:firebase_flutter/main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_flutter/record.dart';
 import 'package:flutter/material.dart';
 
@@ -19,19 +19,26 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    // TODO: get actual snapshot from cloud Firestone
-    return _buildList(context, dummySnapshot);
+    return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance.collection('startup').snapshots(),
+      builder: (context, snapshot) {
+        if(!snapshot.hasData) 
+          return LinearProgressIndicator();
+        return _buildList(context, snapshot.data.documents);
+      },
+    );
+    // return _buildList(context, dummySnapshot);
   }
 
-  Widget _buildList(BuildContext context, List<Map> snapshot){
+  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot){
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
       children: snapshot.map((data) => _buildListItem(context, data)).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context, Map data){
-    final record = Record.fromMap(data);
+  Widget _buildListItem(BuildContext context, DocumentSnapshot data){
+    final record = Record.fromSnapshot(data);
 
     return Padding(
       key: ValueKey(record.name),
