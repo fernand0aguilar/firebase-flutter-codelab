@@ -22,22 +22,21 @@ class _MyHomePageState extends State<MyHomePage> {
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance.collection('startup').snapshots(),
       builder: (context, snapshot) {
-        if(!snapshot.hasData) 
-          return LinearProgressIndicator();
+        if (!snapshot.hasData) return LinearProgressIndicator();
         return _buildList(context, snapshot.data.documents);
       },
     );
     // return _buildList(context, dummySnapshot);
   }
 
-  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot){
+  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
       children: snapshot.map((data) => _buildListItem(context, data)).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context, DocumentSnapshot data){
+  Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
     final record = Record.fromSnapshot(data);
 
     return Padding(
@@ -51,7 +50,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListTile(
           title: Text(record.name),
           trailing: Text(record.votes.toString()),
-          onTap: () => print(record),
+          onTap: () => Firestore.instance.runTransaction((transaction) async {
+                final freshSnapshot = await transaction.get(record.reference);
+                final fresh = Record.fromSnapshot(freshSnapshot);
+                await transaction
+                    .update(record.reference, {'votes': fresh.votes + 1});
+              }),
         ),
       ),
     );
